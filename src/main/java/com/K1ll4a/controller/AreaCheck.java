@@ -7,44 +7,27 @@ import com.K1ll4a.sevice.AreaCheckService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-@WebServlet("/area-check")
+@WebServlet(urlPatterns = {"/area-check"})
 public class AreaCheck extends HttpServlet {
-
     private final AreaCheckService checker = new AreaCheckService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        // Берём double из атрибутов, которые положил ContollerServlet
+        double x = (Double) req.getAttribute("x");
+        double y = (Double) req.getAttribute("y");
+        double r = (Double) req.getAttribute("r");
 
+        boolean hit = checker.isHit(x, y, r);                   // <-- правильный метод
+        Point  pt  = new Point(x, y, r);
+        HitResult result = new HitResult(pt, hit, LocalDateTime.now()); // <-- правильный конструктор
 
-        Double x = (Double) req.getAttribute("x");
-        Double y = (Double) req.getAttribute("y");
-        Double r = (Double) req.getAttribute("r");
-
-        if (x == null || y == null || r == null) {
-            try {
-                x = Double.valueOf(req.getParameter("x"));
-                y = Double.valueOf(req.getParameter("y"));
-                r = Double.valueOf(req.getParameter("r"));
-            } catch (Exception e) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Некорректные параметры");
-                return;
-            }
-        }
-
-        boolean hit = checker.isHit(x, y, r);
-
-        Point point = new Point(x, y, r);
-        HitResult result = new HitResult(point, hit, LocalDateTime.now());
-
-
+        // Кладём в историю в сессии (бин "hits")
         HttpSession session = req.getSession();
         HitListBean bean = (HitListBean) session.getAttribute("hits");
         if (bean == null) {
@@ -53,15 +36,14 @@ public class AreaCheck extends HttpServlet {
         }
         bean.add(result);
 
-
+        // Для result.jsp
         req.setAttribute("result", result);
         req.getRequestDispatcher("/result.jsp").forward(req, resp);
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
-        resp.sendRedirect(req.getContextPath() + "/");
+            throws IOException {
+        resp.sendRedirect(req.getContextPath() + "/controller");
     }
 }
