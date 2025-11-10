@@ -23,9 +23,9 @@ public class AreaCheck extends HttpServlet {
         double y = (Double) req.getAttribute("y");
         double r = (Double) req.getAttribute("r");
 
-        boolean hit = checker.isHit(x, y, r);                   // <-- правильный метод
+        boolean hit = checker.isHit(x, y, r);
         Point  pt  = new Point(x, y, r);
-        HitResult result = new HitResult(pt, hit, LocalDateTime.now()); // <-- правильный конструктор
+        HitResult result = new HitResult(pt, hit, LocalDateTime.now());
 
         // Кладём в историю в сессии (бин "hits")
         HttpSession session = req.getSession();
